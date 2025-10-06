@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  bot:
+    build: .
+    container_name: dobslovo_bot
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    restart: always
+
+#Объяснение:
+#Контейнер с ботом перезапускается при сбое (restart: always).
+#env_file подставляет переменные окружения из .env.
+#volumes позволяет менять код без пересборки контейнера.
