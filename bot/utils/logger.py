@@ -1,11 +1,18 @@
-import logging
+from loguru import logger
+import sys
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-)
+# Настройка формата логов
+logger.remove()  # Удаляем стандартный обработчик
+logger.add(sys.stdout, format="<green>{time:HH:mm:ss}</green> | <level>{level}</level> | {message}", level="INFO")
 
-logger = logging.getLogger(__name__)
+__all_ = ["logger"] # Экспортируем логгер для использования в других модулях
+
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+# )
+
+# logger = logging.getLogger(__name__)
 
 """Объяснение:
 
