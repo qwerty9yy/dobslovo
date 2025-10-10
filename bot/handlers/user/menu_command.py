@@ -1,7 +1,9 @@
 import html
 from bot.db import crud
 from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_support_us
+from bot.keyboards.user.products_keyboard import get_products_menu
 from bot.keyboards.user.start_keyboard import get_start_menu
+from bot.parsers.products_parser import parse_products_page
 
 async def show_start_menu(message_or_call, edit: bool = False):
     """Стартовое меню"""
@@ -86,6 +88,22 @@ async def show_donate_menu(message_or_call, edit: bool = False):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
         await message_or_call.answer(text, reply_markup=markup)
+        
+async def show_products_menu(message_or_call, edit: bool = False):
+    """Меню продукция"""
+    data = parse_products_page()
+    text = (
+        "📰 <b>Заказать и купить газету «Доброе Слово»</b> можно:\n\n"
+        "📩 Отправив сообщение по СМС, Viber или WhatsApp на номер:\n"
+        "<code>+7-912-756-82-80</code>\n\n"
+        "🛍️ Или через маркетплейс Ozon:"
+    )
+    markup = get_products_menu(data['ozon_link'])
+    if edit and hasattr(message_or_call, 'message'):
+        await message_or_call.message.edit_text(text, reply_markup=markup)
+    else:
+        await message_or_call.answer(text, reply_markup=markup)
+    
 
 # async def show_resources_menu(message_or_call, edit: bool = False):
 #     """Меню"""
