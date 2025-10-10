@@ -3,7 +3,7 @@ from aiogram.filters import Command
 from bot.db import crud
 from aiogram.types import Message
 
-from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_start_menu
+from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_products_menu, show_start_menu
 
 router = Router()
 
@@ -27,6 +27,11 @@ async def about_handler(message: Message):
 async def donate_handler(message: Message):
     """Обработчик команды /donate"""
     await show_donate_menu(message)
+
+@router.message(Command('products'))
+async def products_handler(message: Message):
+    """Обработчик команды /products"""
+    await show_products_menu(message)
     
 # @router.message(Command('support'))
 # async def support_handler(message: Message):
