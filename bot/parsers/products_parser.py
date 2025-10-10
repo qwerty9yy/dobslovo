@@ -54,10 +54,6 @@ def parse_products_page():
         count_copy = block.find('span', class_='elementor-price-list-title').text.strip()
         price_count_copy = block.find('span', class_='elementor-price-list-price').text.strip()
         faq.append((count_copy, price_count_copy))
-    
-    
-    
-    
     data = {
         'ozon_link': ozon_link,
         'price': price_text,
