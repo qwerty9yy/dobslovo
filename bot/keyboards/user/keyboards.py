@@ -32,9 +32,9 @@ def get_menu_about_us():
 def get_support_us():
     ''' Клавиатура меню "Поддержать" Telegram-бота «Доброе Слово». '''
     buider = InlineKeyboardBuilder()
-    buider.button(text='🏦 Сбербанк', callback_data='show_sberbank')
-    buider.button(text='💳 МТС Банк', callback_data='show_mtsbank')
-    buider.button(text='📮 Почта России', callback_data='show_mailrussia')
+    buider.button(text='🏦 Сбербанк', callback_data='bank_sberbank')
+    buider.button(text='💳 МТС Банк', callback_data='bank_mtsbank')
+    buider.button(text='📮 Почта России', callback_data='bank_mailrussia')
     buider.button(text='← Назад', callback_data='menu_about_us')
     buider.button(text="🔙 Главное меню", callback_data="back_to_main")
     buider.adjust(1, 1, 1, 2)
