@@ -12,12 +12,7 @@ CACHE_TTL = 24 * 60 * 60 # 24 часа
 def get_random_headers():
     """Возвращает заголовки с случайным User-Agent"""
     ua = UserAgent()
-    return {
-        "User-Agent": ua.random,
-        "Accept-Language": "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Connection": "keep-alive",
-    }
+    return {'User-Agent': ua.random}
 
 
 def parse_products_page():
@@ -48,16 +43,35 @@ def parse_products_page():
     price_text = price_block.get_text(strip=True) if price_block else "Цена не найдена"
     
     # Парсим Цены с пересылкой по России
-    faq_blocks = soup.find_all('li', class_='elementor-price-list-item')
-    faq = []
-    for block in faq_blocks:
-        count_copy = block.find('span', class_='elementor-price-list-title').text.strip()
-        price_count_copy = block.find('span', class_='elementor-price-list-price').text.strip()
-        faq.append((count_copy, price_count_copy))
+    price_blocks = soup.find_all('li', class_='elementor-price-list-item')
+    price_delivery = []
+    for block in price_blocks:
+        title_tag = block.find('span', class_='elementor-price-list-title')
+        price_tag = block.find('span', class_='elementor-price-list-price')
+        if not (title_tag and price_tag):
+            continue
+        count_copy = title_tag.text.strip()
+        price_count_copy = price_tag.text.strip()
+        price_delivery.append((count_copy, price_count_copy))
+        
+    # Парсим Популярные вопросы и ответы 
+    blog_items = soup.find_all('div', class_='elementor-toggle-item')
+    popular_questions = []
+    for blog in blog_items:
+        title_tag = blog.find('a', class_='elementor-toggle-title')
+        content_tag = blog.find('div', class_='elementor-tab-content')
+        if not (title_tag and content_tag):
+            continue
+        question = title_tag.get_text(strip=True)
+        answer = content_tag.get_text(strip=True)
+        popular_questions.append((question, answer))
+    
+    
     data = {
         'ozon_link': ozon_link,
         'price': price_text,
-        'price_delivery': faq,
+        'price_delivery': price_delivery,
+        'popular_questions': popular_questions,
     }
     
     # Сохраняем кеш
