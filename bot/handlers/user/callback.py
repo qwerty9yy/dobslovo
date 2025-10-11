@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, InputMediaPhoto
 
 from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_products_menu, show_start_menu
 from bot.keyboards.user.keyboards import get_show_bank, get_support_us
-from bot.keyboards.user.products_keyboard import get_show_price
+from bot.keyboards.user.products_keyboard import get_show_faq, get_show_price
 from bot.parsers.products_parser import parse_products_page
 
 router = Router()
@@ -85,5 +85,24 @@ async def menu_show_price(callback: CallbackQuery):
             text += f"• {count}: <b>{price}</b>\n"
             
     markup = get_show_price()
+    await callback.message.edit_text(text, reply_markup=markup)
+
+@router.callback_query(F.data == 'show_faq')
+async def menu_show_faq(callback: CallbackQuery):
+    """Обработчик кнопки 'Популярные вопросы' из Продукция"""
+    data = parse_products_page()
+    questions = data.get('popular_questions', [])
+    
+    if not questions:
+        await callback.answer('Популярные вопросы временно недоступны 😔', show_alert=True)
+        return
+    
+    text = (
+        '❓ <b>Популярные вопросы:</b>\n\n'
+    )
+    for question, answer in questions:
+        text += f'🔹 <b>{question}</b>\n<blockquote>{answer}</blockquote>\n\n'
+        
+    markup = get_show_faq()
     await callback.message.edit_text(text, reply_markup=markup)
     
