@@ -39,10 +39,11 @@ def get_show_faq():
     now = datetime.now()
     if not _questions_cache['markup'] or (now - _questions_cache['timestamp'] > timedelta(hours=12)):
         builder = InlineKeyboardBuilder()
+        builder.button(text='🌐 Перейти на сайт', url='https://dobslovo.ru/arhivy-gazety/')
         builder.button(text='💬 Задать вопрос редакции', url=support)
         builder.button(text='← Назад', callback_data='menu_products')
         builder.button(text='🔙 Главное меню', callback_data='back_to_main')
-        builder.adjust(1, 2)
+        builder.adjust(1, 1, 2)
         _questions_cache['markup'] = builder.as_markup()
         _questions_cache['timestamp'] = now
     return _questions_cache['markup']
