@@ -3,6 +3,7 @@ from bot.db import crud
 from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_support_us
 from bot.keyboards.user.products_keyboard import get_products_menu
 from bot.keyboards.user.start_keyboard import get_start_menu
+from bot.parsers.number_newspapers import parse_number_newspapers
 from bot.parsers.products_parser import parse_products_page
 
 async def show_start_menu(message_or_call, edit: bool = False):
@@ -49,11 +50,14 @@ async def show_menu_contacts(message_or_call, edit: bool = False):
         
 async def show_menu_about_us(message_or_call, edit: bool = False):
     """Меню О нас"""
+    data = parse_number_newspapers()
+    newspapers = data.get('count_newspapers')
     text = (
         "✨ <b>О нас</b> ✨\n\n"
-        "История христианской газеты <b>«Доброе Слово»</b> началась ещё в <b>2000 году</b>. "
+        "История христианской газеты <b>«Доброе Слово»</b> началась ещё в <b>2002 году</b>. "
         "С первых выпусков мы стремились рассказывать о Божьей любви и о том, "
         "как Господь действует в жизни обычных людей.\n\n"
+        f"Газет отпечатано с 2002 года: <b>{newspapers}</b>\n\n"
         "🕊️ На страницах нашей газеты вы найдёте:\n"
         "• вдохновляющие свидетельства о вере и чудесах Божьих,\n"
         "• поучительные статьи и размышления,\n"
