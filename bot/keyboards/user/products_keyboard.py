@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 
 _cache_data = {'markup': None, 'timestamp': None}
 _price_cache = {'markup': None, 'timestamp': None}
+_questions_cache = {'markup': None, 'timestamp': None}
+
+support = 'https://t.me/qwert9yy'
 
 def get_products_menu(ozon_link: str):
     """ Клавиатура для меню 'Продукция' """
@@ -30,3 +33,16 @@ def get_show_price():
         _price_cache['markup'] = builder.as_markup()
         _price_cache['timestamp'] = now
     return _price_cache['markup']
+
+def get_show_faq():
+    """ Клавиатура для меню 'Популярные вопросы' """
+    now = datetime.now()
+    if not _questions_cache['markup'] or (now - _questions_cache['timestamp'] > timedelta(hours=12)):
+        builder = InlineKeyboardBuilder()
+        builder.button(text='💬 Задать вопрос редакции', url=support)
+        builder.button(text='← Назад', callback_data='menu_products')
+        builder.button(text='🔙 Главное меню', callback_data='back_to_main')
+        builder.adjust(1, 2)
+        _questions_cache['markup'] = builder.as_markup()
+        _questions_cache['timestamp'] = now
+    return _questions_cache['markup']
