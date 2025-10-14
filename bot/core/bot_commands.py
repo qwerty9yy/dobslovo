@@ -7,5 +7,6 @@ def get_bot_commands() -> list[BotCommand]:
         BotCommand(command='/contacts', description='Контакты'),
         BotCommand(command='/about', description='О нас'),
         BotCommand(command='/donate', description='Поддержать редакцию'),
-        BotCommand(command='/products', description='Продукция')
+        BotCommand(command='/products', description='Продукция'),
+        BotCommand(command='/newspaper', description='Газета')
     ]
