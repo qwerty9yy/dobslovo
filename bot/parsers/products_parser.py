@@ -4,34 +4,39 @@ import time
 from bs4 import BeautifulSoup
 import requests
 from fake_useragent import UserAgent
+from bot.utils.cache import cache_json
 
 URL = 'https://dobslovo.ru/kupit-gazetu/'
-CACHE_FILE = os.path.join(os.path.dirname(__file__), "cache_products.json")
-CACHE_TTL = 24 * 60 * 60 # 24 часа
+# CACHE_FILE = os.path.join(os.path.dirname(__file__), "cache_products.json")
+# CACHE_TTL = 24 * 60 * 60 # 24 часа
 
 def get_random_headers():
     """Возвращает заголовки с случайным User-Agent"""
     ua = UserAgent()
     return {'User-Agent': ua.random}
 
-
-def parse_products_page():
+@cache_json(ttl=86400)
+async def parse_products_page():
     """
     Парсит страницу 'Купить газету' с кешированием на 24 часа.
     Использует случайный User-Agent для маскировки под браузер.
     """
     
-    # Проверяем кеш
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-            cached = json.load(f)
-        if time.time() - cached['timestamp'] < CACHE_TTL:
-            return cached['data']
-    
+    # # Проверяем кеш
+    # if os.path.exists(CACHE_FILE):
+    #     with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+    #         cached = json.load(f)
+    #     if time.time() - cached['timestamp'] < CACHE_TTL:
+    #         return cached['data']
     # Если кеш устарел — делаем новый запрос
+    
     headers = get_random_headers()
-    response = requests.get(URL, headers=headers, timeout=10)
-    response.raise_for_status()
+    try:
+        response = requests.get(URL, headers=headers, timeout=10)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"⚠️ Ошибка при запросе: {e}")
+        return {"ozon_link": None, "price": "Ошибка загрузки"}
     soup = BeautifulSoup(response.text, 'lxml')
     
     # Парсим OZON ссылку
@@ -67,16 +72,16 @@ def parse_products_page():
         popular_questions.append((question, answer))
     
     
-    data = {
+    return {
         'ozon_link': ozon_link,
         'price': price_text,
         'price_delivery': price_delivery,
         'popular_questions': popular_questions,
     }
     
-    # Сохраняем кеш
-    with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-        json.dump({'timestamp': time.time(), 'data': data}, f, ensure_ascii=False, indent=2)
+    # # Сохраняем кеш
+    # with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+    #     json.dump({'timestamp': time.time(), 'data': data}, f, ensure_ascii=False, indent=2)
         
-    return data
+    # return data
     
