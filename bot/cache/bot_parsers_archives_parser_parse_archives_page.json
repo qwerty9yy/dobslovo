@@ -1,0 +1,102 @@
+{
+  "newspapers": [
+    {
+      "title": "Газета 2024-3-Рождество",
+      "year": "2024",
+      "issue": "3",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2024-3-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/iOS.webp"
+    },
+    {
+      "title": "Газета 2024-1-Пасха",
+      "year": "2024",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2024-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2024-2-Рождество.webp"
+    },
+    {
+      "title": "Газета 2023-3-Рождество",
+      "year": "2023",
+      "issue": "3",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2023-3-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2024-1-Пасха.webp"
+    },
+    {
+      "title": "Газета 2023-1-Пасха",
+      "year": "2023",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2023-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2023-3-Рождество.webp"
+    },
+    {
+      "title": "Газета 2022-3-Рождество",
+      "year": "2022",
+      "issue": "3",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2022-3-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2023-1-Пасха.webp"
+    },
+    {
+      "title": "Газета 2022-1-Пасха",
+      "year": "2022",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2022-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2022-3-Рождество.webp"
+    },
+    {
+      "title": "Газета 2021-2-Рождество",
+      "year": "2021",
+      "issue": "2",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2021-2-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2022-1-Пасха.webp"
+    },
+    {
+      "title": "Газета 2021-1-Пасха",
+      "year": "2021",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2021-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2021-2-Рождество.webp"
+    },
+    {
+      "title": "Газета 2020-2-Рождество",
+      "year": "2020",
+      "issue": "2",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2020-2-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2021-1-Пасха.webp"
+    },
+    {
+      "title": "Газета 2020-1-Пасха",
+      "year": "2020",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2020-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2020-2-Рождество.webp"
+    },
+    {
+      "title": "Газета 2019-2-Рождество",
+      "year": "2019",
+      "issue": "2",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2019-2-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2020-1-Пасха.webp"
+    },
+    {
+      "title": "Газета 2019-1-Пасха",
+      "year": "2019",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2019-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2019-2-Рождество.webp"
+    },
+    {
+      "title": "Газета 2019-2-Рождество",
+      "year": "2019",
+      "issue": "2",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2019-2-Рождество.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2019-1-Пасха.webp"
+    },
+    {
+      "title": "Газета 2019-1-Пасха",
+      "year": "2019",
+      "issue": "1",
+      "pdf_url": "https://dobslovo.ru/wp-content/uploads/Номер-2019-1-Пасха.pdf",
+      "img_url": "https://dobslovo.ru/wp-content/uploads/Номер-2018-3-Рождество.webp"
+    }
+  ]
+}
