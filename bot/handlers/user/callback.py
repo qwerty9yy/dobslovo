@@ -1,19 +1,29 @@
 import html
 from pathlib import Path
 from aiogram import Router, F, types
-from aiogram.types import CallbackQuery, InputMediaPhoto
+from aiogram.types import CallbackQuery, InputMediaPhoto, Message
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.fsm.context import FSMContext
 
-from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_products_menu, show_start_menu
-from bot.keyboards.user.keyboards import get_show_bank, get_support_us
+from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_menu_newspaper, show_products_menu, show_start_menu
+from bot.keyboards.user.keyboards import create_year_papers_keyboard, get_menu_newspaper, get_show_bank, get_support_us
 from bot.keyboards.user.products_keyboard import get_show_faq, get_show_price
+from bot.parsers.archives_parser import parse_archives_page
 from bot.parsers.products_parser import parse_products_page
+from bot.utils.states import NewsPapers
 
 router = Router()
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_menu(callback: CallbackQuery):
     """Обработчик кнопки 'Назад' в главное меню"""
-    await show_start_menu(callback, edit=True)  # Редактируем существующее сообщение
+    try:
+        await show_start_menu(callback, edit=True)  # Редактируем существующее сообщение
+    except TelegramBadRequest:
+        # Если не получается отредактировать (сообщение без текста),
+        # отправляем новое сообщение
+        await show_start_menu(callback, edit=False)  
+    await callback.answer()      
 
 @router.callback_query(F.data == "contacts")
 async def menu_contacts(callback: CallbackQuery):
@@ -72,7 +82,7 @@ async def menu_products(callback: CallbackQuery):
 @router.callback_query(F.data == 'show_price')
 async def menu_show_price(callback: CallbackQuery):
     """Обработчик кнопки 'Цена газеты' из Продукция"""
-    data = parse_products_page()
+    data = await parse_products_page() or {}
     main_price = data.get('price', "Цена не найдена 😔")
     price_delivery = data.get('price_delivery', [])
     text = (
@@ -82,15 +92,18 @@ async def menu_show_price(callback: CallbackQuery):
     if price_delivery:
         text += "📦 <b>Цены с пересылкой по России:</b>\n"
         for count, price in price_delivery:
-            text += f"• {count}: <b>{price}</b>\n"
+            text += f"• {html.escape(count)}: <b>{html.escape(price)}</b>\n"
             
     markup = get_show_price()
-    await callback.message.edit_text(text, reply_markup=markup)
+    try:
+        await callback.message.edit_text(text, reply_markup=markup)
+    except TelegramBadRequest:
+        await callback.answer("Сообщение уже актуально ✅", show_alert=False)
 
 @router.callback_query(F.data == 'show_faq')
 async def menu_show_faq(callback: CallbackQuery):
     """Обработчик кнопки 'Популярные вопросы' из Продукция"""
-    data = parse_products_page()
+    data = await parse_products_page() or {}
     questions = data.get('popular_questions', [])
     
     if not questions:
@@ -101,8 +114,108 @@ async def menu_show_faq(callback: CallbackQuery):
         '❓ <b>Популярные вопросы:</b>\n\n'
     )
     for question, answer in questions:
-        text += f'🔹 <b>{question}</b>\n<blockquote>{answer}</blockquote>\n\n'
+        text += f'🔹 <b>{html.escape(question)}</b>\n<blockquote>{html.escape(answer)}</blockquote>\n\n'
         
     markup = get_show_faq()
-    await callback.message.edit_text(text, reply_markup=markup)
+    try:
+        await callback.message.edit_text(text, reply_markup=markup)
+    except TelegramBadRequest:
+        await callback.answer("Сообщение уже актуально ✅", show_alert=False)
     
+@router.callback_query(F.data == 'newspaper')
+async def menu_show_newspaper(callback: CallbackQuery, state: FSMContext):
+    """Обработчик кнопки 'Газета'"""
+    await show_menu_newspaper(callback, edit=True)
+    await state.set_state(NewsPapers.newspapers)
+        
+@router.message(NewsPapers.newspapers)
+async def menu_process_years(message: Message, state: FSMContext):
+    """Обработчик кнопки 'Введеного года'"""
+    data = await parse_archives_page()
+    newspapers = data.get('newspapers', [])
+    
+    if not newspapers:
+        await message.answer('Архивы временно недоступны')
+        await state.clear()
+        return
+    
+    max_year = max(int(item['year']) for item in newspapers)
+    user_text = message.text
+    markup = get_menu_newspaper()
+    # Проверки
+    if not user_text.isdigit():
+        await message.answer('❌ Введите число!', reply_markup=markup)
+        return
+    
+    if len(user_text) != 4:
+        await message.answer('❌ Пожалуйста, введите корректный год (4 цифры)', reply_markup=markup)
+        return
+    
+    year = int(user_text)
+    
+    if year < 2018:
+        await message.answer('❌ Выпусков до 2018 года нет в архивах', reply_markup=markup)
+        return
+    
+    if year > max_year:
+        await message.answer(f'❌ Выпуски доступны до {max_year} года', reply_markup=markup)
+        return
+    
+    year_papers = [paper for paper in newspapers if int(paper['year']) == year]
+    
+    if not year_papers:
+        await message.answer(f'❌ За {year} год выпусков не найдено')
+        await state.clear()
+        return
+    
+    # Показываем найденные газеты
+    text = f'📰 <b>Газеты за {year} год:</b>\n\n'
+    for paper in year_papers:
+        text += f"• {paper['title']}\n"
+        
+    markup_papers = create_year_papers_keyboard(year_papers)
+    await message.answer(text, reply_markup=markup_papers)
+    await state.clear()
+
+@router.callback_query(F.data.startswith('newspaper_'))
+async def handle_newspaper_selection(callback: CallbackQuery):
+    """Обработчик кнопки 'Выбора выпуска газеты введеного года'"""
+    parts = callback.data.split('_')    # ["newspaper", "2024", "1"]
+    
+    year = parts[1]
+    issue = parts[2]
+    
+    data = await parse_archives_page()
+    papers = data.get('newspapers', [])
+    
+    # Ищем выбранную газету
+    selected_paper = next(
+        (paper for paper in papers 
+         if paper['year'] == year and paper['issue'] == issue),
+        None
+    )
+    if selected_paper:
+        markup = get_menu_newspaper()
+        
+        # Отправляем картинку газеты
+        if selected_paper.get('img_url'):
+            await callback.message.answer_photo(
+                photo=selected_paper['img_url'],
+                caption=(f"📰 <b>{selected_paper['title']}</b>\n\n"
+                         f"⬇️ Файл PDF прикреплен ниже"),
+                reply_markup=markup
+            )
+        else:
+            await callback.message.answer(
+                f"📰 <b>{selected_paper['title']}</b>",
+                reply_markup=markup
+            )
+        
+        # Отправляем PDF файл
+        await callback.message.answer_document(
+            document=selected_paper['pdf_url'],
+            caption=f"📄 <b>Газета в формате PDF</b>",
+            reply_markup=markup
+        )
+    else:
+        await callback.answer("❌ Газета не найдена", show_alert=True)
