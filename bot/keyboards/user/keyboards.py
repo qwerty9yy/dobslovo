@@ -49,3 +49,25 @@ def get_show_bank():
    builder.button(text='🔙 Главное меню', callback_data='back_to_main')
    builder.adjust(1, 2)
    return builder.as_markup()
+
+@lru_cache
+def get_menu_newspaper():
+   ''' Клавиатура меню "Газета" Telegram-бота «Доброе Слово». '''
+   builder = InlineKeyboardBuilder()
+   builder.button(text='🔙 Главное меню', callback_data='back_to_main')
+   builder.adjust(1)
+   return builder.as_markup()
+
+def create_year_papers_keyboard(papers: list):
+    """Создает клавиатуру с газетами выбранного года"""
+    builder = InlineKeyboardBuilder()
+    
+    for paper in papers:
+        builder.button(
+            text=f"{paper['title']}",
+            callback_data=f"newspaper_{paper['year']}_{paper['issue']}"
+        )
+    
+    builder.button(text='🔙 Главное меню', callback_data='back_to_main')
+    builder.adjust(2)
+    return builder.as_markup()
