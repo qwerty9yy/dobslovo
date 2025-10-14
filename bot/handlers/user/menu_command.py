@@ -1,10 +1,14 @@
 import html
 from bot.db import crud
-from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_support_us
+from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_menu_newspaper, get_support_us
 from bot.keyboards.user.products_keyboard import get_products_menu
 from bot.keyboards.user.start_keyboard import get_start_menu
 from bot.parsers.number_newspapers import parse_number_newspapers
 from bot.parsers.products_parser import parse_products_page
+from aiogram.fsm.context import FSMContext
+from aiogram.exceptions import TelegramBadRequest
+
+from bot.utils.states import NewsPapers
 
 async def show_start_menu(message_or_call, edit: bool = False):
     """Стартовое меню"""
@@ -27,7 +31,10 @@ async def show_start_menu(message_or_call, edit: bool = False):
     )
     markup = get_start_menu()
     if edit and hasattr(message_or_call, "message"):
-        await message_or_call.message.edit_text(text, reply_markup=markup)
+        try:
+            await message_or_call.message.edit_text(text, reply_markup=markup)
+        except TelegramBadRequest:
+            await message_or_call.message.answer(text, reply_markup=markup)
     else:
         await message_or_call.answer(text, reply_markup=markup)
         
@@ -50,7 +57,7 @@ async def show_menu_contacts(message_or_call, edit: bool = False):
         
 async def show_menu_about_us(message_or_call, edit: bool = False):
     """Меню О нас"""
-    data = parse_number_newspapers()
+    data = await parse_number_newspapers()
     newspapers = data.get('count_newspapers')
     text = (
         "✨ <b>О нас</b> ✨\n\n"
@@ -95,7 +102,7 @@ async def show_donate_menu(message_or_call, edit: bool = False):
         
 async def show_products_menu(message_or_call, edit: bool = False):
     """Меню продукция"""
-    data = parse_products_page()
+    data = await parse_products_page()
     text = (
         "📰 <b>Заказать и купить газету «Доброе Слово»</b> можно:\n\n"
         "📩 Отправив сообщение по СМС, Viber или WhatsApp на номер:\n"
@@ -107,7 +114,31 @@ async def show_products_menu(message_or_call, edit: bool = False):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
         await message_or_call.answer(text, reply_markup=markup)
+
+async def show_menu_newspaper(message_or_call, edit: bool = False):
+    text = (
+        "📅 Напишите, за какой год вы хотите посмотреть газеты.\n\n"
+        "Например: <b>2024</b>"
+    )
+    markup = get_menu_newspaper()
+    if edit and hasattr(message_or_call, 'message'):
+        await message_or_call.message.edit_text(text, reply_markup=markup)
+    else:
+        await message_or_call.answer(text, reply_markup=markup)
     
+    
+        
+
+# async def show_newspaper_menu(message_or_call, edit: bool = False):
+#     """Меню Газета"""
+#     text = (
+#         "📅 Напишите, за какой год вы хотите посмотреть газеты.\n\n"
+#         "Например: <b>2024</b>"
+#     )
+#     if edit and hasattr(message_or_call, 'message'):
+#         await message_or_call.message.edit_text(text)
+#     else:
+#         await message_or_call.answer(text)
 
 # async def show_resources_menu(message_or_call, edit: bool = False):
 #     """Меню"""
