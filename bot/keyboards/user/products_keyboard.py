@@ -10,7 +10,7 @@ support = 'https://t.me/qwert9yy'
 def get_products_menu(ozon_link: str):
     """ Клавиатура для меню 'Продукция' """
     now = datetime.now()
-    # Обновляем каждые 6 часов
+    # Обновляем каждые 12 часов
     if not _cache_data['markup'] or (now - _cache_data["timestamp"] > timedelta(hours=12)):
         builder = InlineKeyboardBuilder()
         builder.button(text='🛒 Перейти на Ozon', url=ozon_link)
