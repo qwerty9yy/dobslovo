@@ -126,18 +126,6 @@ async def show_menu_newspaper(message_or_call, edit: bool = False):
         await message_or_call.answer(text, reply_markup=markup)
     
     
-        
-
-# async def show_newspaper_menu(message_or_call, edit: bool = False):
-#     """Меню Газета"""
-#     text = (
-#         "📅 Напишите, за какой год вы хотите посмотреть газеты.\n\n"
-#         "Например: <b>2024</b>"
-#     )
-#     if edit and hasattr(message_or_call, 'message'):
-#         await message_or_call.message.edit_text(text)
-#     else:
-#         await message_or_call.answer(text)
 
 # async def show_resources_menu(message_or_call, edit: bool = False):
 #     """Меню"""
