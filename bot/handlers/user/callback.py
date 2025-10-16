@@ -6,11 +6,11 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 
 from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_menu_newspaper, show_products_menu, show_start_menu
-from bot.keyboards.user.keyboards import create_year_papers_keyboard, get_menu_newspaper, get_show_bank, get_support_us
+from bot.keyboards.user.keyboards import create_year_papers_keyboard, get_menu_newspaper, get_menu_newspaper_search, get_show_bank, get_support_us
 from bot.keyboards.user.products_keyboard import get_show_faq, get_show_price
 from bot.parsers.archives_parser import parse_archives_page
 from bot.parsers.products_parser import parse_products_page
-from bot.utils.states import NewsPapers
+from bot.utils.states import NewsPapers, SupportState
 
 router = Router()
 
@@ -39,6 +39,12 @@ async def menu_about_us(callback: CallbackQuery):
 async def menu_support_us(callback: CallbackQuery):
     """Обработчик кнопки 'Поддержать'"""
     await show_donate_menu(callback, edit=True)
+
+@router.callback_query(lambda c: c.data == 'menu_products')
+async def menu_products(callback: CallbackQuery):
+    """Обработчик кнопки 'Продукция' из главного меню"""
+    await show_products_menu(callback, edit=True)
+
 
 @router.callback_query(F.data.startswith('bank_'))
 async def support_us_callback(callback: CallbackQuery):
@@ -73,11 +79,6 @@ async def support_us_callback(callback: CallbackQuery):
     await callback.message.edit_text(
     bank_info, reply_markup=markup
     )
-    
-@router.callback_query(lambda c: c.data == 'menu_products')
-async def menu_products(callback: CallbackQuery):
-    """Обработчик кнопки 'Продукция' из главного меню"""
-    await show_products_menu(callback, edit=True)
 
 @router.callback_query(F.data == 'show_price')
 async def menu_show_price(callback: CallbackQuery):
@@ -141,7 +142,7 @@ async def menu_process_years(message: Message, state: FSMContext):
     
     max_year = max(int(item['year']) for item in newspapers)
     user_text = message.text
-    markup = get_menu_newspaper()
+    markup = get_menu_newspaper_search()
     # Проверки
     if not user_text.isdigit():
         await message.answer('❌ Введите число!', reply_markup=markup)
@@ -164,7 +165,7 @@ async def menu_process_years(message: Message, state: FSMContext):
     year_papers = [paper for paper in newspapers if int(paper['year']) == year]
     
     if not year_papers:
-        await message.answer(f'❌ За {year} год выпусков не найдено')
+        await message.answer(f'❌ За {year} год выпусков не найдено', reply_markup=markup)
         await state.clear()
         return
     
@@ -201,20 +202,13 @@ async def handle_newspaper_selection(callback: CallbackQuery):
         if selected_paper.get('img_url'):
             await callback.message.answer_photo(
                 photo=selected_paper['img_url'],
-                caption=(f"📰 <b>{selected_paper['title']}</b>\n\n"
-                         f"⬇️ Файл PDF прикреплен ниже"),
-                reply_markup=markup
-            )
-        else:
-            await callback.message.answer(
-                f"📰 <b>{selected_paper['title']}</b>",
-                reply_markup=markup
-            )
+                caption=(f"📰 <b>{selected_paper['title']}</b>"
+            ))
         
         # Отправляем PDF файл
         await callback.message.answer_document(
             document=selected_paper['pdf_url'],
-            caption=f"📄 <b>Газета в формате PDF</b>",
+            caption=f"📄 <b>Газета в формате PDF</b>\n⬆️ Скачайте файл или вернитесь в меню",
             reply_markup=markup
         )
     else:
