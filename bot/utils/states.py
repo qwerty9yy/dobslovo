@@ -5,3 +5,6 @@ class NewsPapers(StatesGroup):
     
 class AdminState(StatesGroup):
     newsletter = State()
+    
+class SupportState(StatesGroup):
+    waiting_for_question = State()
