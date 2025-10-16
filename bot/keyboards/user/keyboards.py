@@ -55,7 +55,16 @@ def get_menu_newspaper():
    ''' Клавиатура меню "Газета" Telegram-бота «Доброе Слово». '''
    builder = InlineKeyboardBuilder()
    builder.button(text='🔙 Главное меню', callback_data='back_to_main')
-   builder.adjust(1)
+   builder.adjust(2)
+   return builder.as_markup()
+
+@lru_cache
+def get_menu_newspaper_search():
+   ''' Клавиатура меню "Поиск по архиву" Telegram-бота «Доброе Слово». '''
+   builder = InlineKeyboardBuilder()
+   builder.button(text='🔍 Продолжить поиск', callback_data='newspaper')
+   builder.button(text='🔙 Главное меню', callback_data='back_to_main')
+   builder.adjust(2)
    return builder.as_markup()
 
 def create_year_papers_keyboard(papers: list):
@@ -67,7 +76,6 @@ def create_year_papers_keyboard(papers: list):
             text=f"{paper['title']}",
             callback_data=f"newspaper_{paper['year']}_{paper['issue']}"
         )
-    
     builder.button(text='🔙 Главное меню', callback_data='back_to_main')
     builder.adjust(2)
     return builder.as_markup()
