@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 
 
 from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_menu_newspaper, show_products_menu, show_start_menu
-from bot.utils.states import NewsPapers, SupportState
+from bot.utils.states import NewsPapers
 
 router = Router()
 
