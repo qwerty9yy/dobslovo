@@ -34,7 +34,8 @@ async def main():
     dp = Dispatcher()
 
     # Подключаем роутеры
-    dp.include_routers(message.router, admin.router, callback.router)
+    dp.include_routers(message.router, callback.router)
+    dp.include_routers(admin.admin_router)
     
     # Инициализация базы данных
     await init_db()
