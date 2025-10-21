@@ -35,7 +35,7 @@ def get_support_us():
     buider.button(text='🏦 Сбербанк', callback_data='bank_sberbank')
     buider.button(text='💳 МТС Банк', callback_data='bank_mtsbank')
     buider.button(text='📮 Почта России', callback_data='bank_mailrussia')
-    buider.button(text='← Назад', callback_data='menu_about_us')
+    buider.button(text='← О нас', callback_data='menu_about_us')
     buider.button(text="🔙 Главное меню", callback_data="back_to_main")
     buider.adjust(1, 1, 1, 2)
     return buider.as_markup()
@@ -62,9 +62,8 @@ def get_menu_newspaper():
 def get_menu_newspaper_search():
    ''' Клавиатура меню "Поиск по архиву" Telegram-бота «Доброе Слово». '''
    builder = InlineKeyboardBuilder()
-   builder.button(text='🔍 Продолжить поиск', callback_data='newspaper')
    builder.button(text='🔙 Главное меню', callback_data='back_to_main')
-   builder.adjust(2)
+   builder.adjust(1)
    return builder.as_markup()
 
 def create_year_papers_keyboard(papers: list):
