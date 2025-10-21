@@ -7,7 +7,7 @@ from aiogram.enums import ParseMode
 from bot.core.bot_commands import get_bot_commands
 from bot.handlers.admin import admin
 from bot.utils.logger import logger
-from bot.handlers.user import message
+from bot.handlers.user import bible, message
 from bot.handlers.user import callback
 from bot.db.models import Base
 from bot.db.base import engine
@@ -34,7 +34,7 @@ async def main():
     dp = Dispatcher()
 
     # Подключаем роутеры
-    dp.include_routers(message.router, callback.router)
+    dp.include_routers(message.router, callback.router, bible.router)
     dp.include_routers(admin.admin_router)
     
     # Инициализация базы данных
