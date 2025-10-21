@@ -1,0 +1,59 @@
+import requests
+from bs4 import BeautifulSoup
+
+from bot.parsers.products_parser import get_random_headers
+
+async def parse_bible_search(search_word: str):
+    """ Прасинг API для поиска по библии
+        Возвращает список словарей с результатами и количество совпадений.
+    """
+    headers = get_random_headers()
+    URL = f'https://justbible.ru/api/search?translation=rst&search={search_word}'
+    try:
+        response = requests.get(URL, headers=headers, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as e:
+        print(f"⚠️ Ошибка при запросе страницы для поиска по Библии: {e}")
+        return None
+    
+    try:
+        data = response.json()
+    except ValueError:
+        print("⚠️ Ошибка: неверный формат ответа API (не JSON).")
+        return None
+    
+    # Проверяем, что это словарь и содержит ключ "info"
+    if not isinstance(data, dict) or 'info' not in data:
+        print("⚠️ Ошибка: структура данных неожиданна.")
+        return None
+    
+    # Берём данные о поиске
+    info = data["info"]
+    search_word = info.get("searched", "—")
+    coincidences = info.get("count", 0)
+    
+    # Создаём список результатов
+    bible_search = {
+        "searched": search_word,
+        "coincidences": coincidences,
+        "results": []
+    }
+    
+    for i in range(coincidences):
+        key = str(i)
+        if key not in data:
+            continue
+        item = data[key]
+        text = item.get('text', 'Без текста')
+        from_where = item.get('data', 'Неизвестно где')
+        
+        bible_search['results'].append({
+            "from_where": from_where,
+            "text": text
+        })
+        
+    return bible_search
+        
+        
+        
+    
