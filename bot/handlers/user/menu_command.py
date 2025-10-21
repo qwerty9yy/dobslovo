@@ -1,4 +1,8 @@
+import asyncio
 import html
+import json
+import random
+from loguru import logger
 from bot.db import crud
 from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_menu_newspaper, get_support_us
 from bot.keyboards.user.products_keyboard import get_products_menu
@@ -7,28 +11,68 @@ from bot.parsers.number_newspapers import parse_number_newspapers
 from bot.parsers.products_parser import parse_products_page
 from aiogram.fsm.context import FSMContext
 from aiogram.exceptions import TelegramBadRequest
-
 from bot.utils.states import NewsPapers
+
+# Глобальная переменная
+quote_of_the_day = None
+
+# Загрузка цитат
+def load_quotes():
+    try:
+        with open('bot/cache/bible_qoutes.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Ошибка загрузки цитат: {e}")
+        return {'bible_quotes': [], 'christian_words': []}
+
+quotes = load_quotes()
+
+def get_random_message():
+    if not quotes['bible_quotes'] and not quotes['christian_words']:
+        return "Доброе слово на сегодня"
+    return random.choice(quotes['christian_words'] + quotes['bible_quotes'])
+
+def update_quote_of_the_day():
+    global quote_of_the_day
+    quote_of_the_day = get_random_message()
+    logger.info(f"Цитата дня обновлена: {quote_of_the_day[:50]}...")
+
+# Инициализируем при загрузке модуля
+if quote_of_the_day is None:
+    update_quote_of_the_day()
 
 async def show_start_menu(message_or_call, edit: bool = False):
     """Стартовое меню"""
+    global quote_of_the_day
+    if not quote_of_the_day:
+        update_quote_of_the_day()
     text = (
-        "✨ <b>Христианская газета «Доброе Слово»</b>✨\n\n"
-        "<i>«Ибо так возлюбил Бог мир, что отдал Сына Своего Единородного, "
-        "дабы всякий верующий в Него не погиб, но имел жизнь вечную»\n"
-        "📖 Иоанна 3:16</i>\n\n"
-        "Добро пожаловать в газету <b>«Доброе Слово»</b> — издание, рассказывающее о "
-        "Божьей любви, вере и живых свидетельствах людей, чьи судьбы изменил Христос.\n\n"
-        "Мы верим, что каждое доброе слово может стать *семенем надежды* 🌱\n"
-        "На страницах нашей газеты вы найдёте:\n\n"
-        "💬 истории реальных людей, которых Бог спас, исцелил и благословил;\n"
-        "📖 статьи о вере, молитве, милосердии и силе Евангелия;\n"
-        "🤝 контакты авторов, с которыми вы можете связаться лично.\n\n"
-        "Пусть каждая публикация станет *ответом на ваш вопрос, "
-        "ободрением в трудный день и напоминанием, что Бог всегда рядом 🙏\n\n"
-        "<b>Он любит вас, слышит ваши молитвы и хочет дать вам *мир, радость и жизнь с избытком*</b> 💖\n\n"
+        f"📖 <i>Цитата дня:</i>\n<b>{quote_of_the_day}</b>\n\n"
+        
+        "🌿 <b>О газете:</b>\n"
+        "Издание о Божьей любви, вере и живых свидетельствах людей, "
+        "чьи судьбы изменил Христос. Каждое слово здесь — семя надежды!\n\n"
+        
+        "📚 <b>Что внутри:</b>\n"
+        "• Истории спасения и исцеления\n"
+        "• Статьи о вере и молитве\n" 
+        "• Контакты авторов\n\n"
+        
+        "🛠 <b>Навигация по боту:</b>\n"
+        "/start - Главное меню\n"
+        "/newspaper - Читать газету\n" 
+        "/products - Наша продукция\n"
+        "/donate - Поддержать редакцию\n"
+        "/bible - Читать Библию\n"
+        "/contacts - Контакты\n"
+        "/about - О проекте\n\n"
+        
+        "💝 <i>Бог любит вас и слышит ваши молитвы!</i>"
     )
     markup = get_start_menu()
+    
+    await asyncio.sleep(0.3)
+    
     if edit and hasattr(message_or_call, "message"):
         try:
             await message_or_call.message.edit_text(text, reply_markup=markup)
@@ -48,6 +92,9 @@ async def show_menu_contacts(message_or_call, edit: bool = False):
         "<i>Пусть каждое слово приносит свет и надежду в ваш день.</i> ✨"
     )
     markup = get_contacts_menu()
+    
+    await asyncio.sleep(0.3)
+    
     if edit and hasattr(message_or_call, "message"):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -78,6 +125,9 @@ async def show_menu_about_us(message_or_call, edit: bool = False):
         "а газета — источником надежды и радости!"
     )
     markup = get_menu_about_us()
+    
+    await asyncio.sleep(0.3)
+    
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -94,6 +144,9 @@ async def show_donate_menu(message_or_call, edit: bool = False):
         "🙏 <b>Да благословит вас Господь!</b>"
     )
     markup = get_support_us()
+    
+    await asyncio.sleep(0.3)
+    
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -109,6 +162,9 @@ async def show_products_menu(message_or_call, edit: bool = False):
         "🛍️ Или через маркетплейс Ozon:"
     )
     markup = get_products_menu(data['ozon_link'])
+    
+    await asyncio.sleep(0.3)
+    
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -120,6 +176,9 @@ async def show_menu_newspaper(message_or_call, edit: bool = False):
         "Например: <b>2024</b>"
     )
     markup = get_menu_newspaper()
+    
+    await asyncio.sleep(0.3)
+    
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -141,3 +200,17 @@ async def show_menu_newspaper(message_or_call, edit: bool = False):
 #     else:
 #         # Для Message: отправляем новое сообщение
 #         await message_or_call.answer(text, reply_markup=markup)
+
+
+    # "✨ <b>Христианская газета «Доброе Слово»</b>✨\n\n"
+    #     "Добро пожаловать в газету <b>«Доброе Слово»</b> — издание, рассказывающее о "
+    #     "Божьей любви, вере и живых свидетельствах людей, чьи судьбы изменил Христос.\n\n"
+    #     "Мы верим, что каждое доброе слово может стать *семенем надежды* 🌱\n"
+    #     "На страницах нашей газеты вы найдёте:\n\n"
+    #     "💬 истории реальных людей, которых Бог спас, исцелил и благословил;\n"
+    #     "📖 статьи о вере, молитве, милосердии и силе Евангелия;\n"
+    #     "🤝 контакты авторов, с которыми вы можете связаться лично.\n\n"
+    #     "Пусть каждая публикация станет *ответом на ваш вопрос, "
+    #     "ободрением в трудный день и напоминанием, что Бог всегда рядом 🙏\n\n"
+    #     "<b>Он любит вас, слышит ваши молитвы и хочет дать вам мир, радость и жизнь с избытком</b> 💖\n\n"
+    #     f"📖 <b>{quote_of_the_day}</b>" 
