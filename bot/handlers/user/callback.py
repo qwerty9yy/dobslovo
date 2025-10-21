@@ -4,19 +4,21 @@ from aiogram import Router, F, types
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
-
 from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_menu_newspaper, show_products_menu, show_start_menu
 from bot.keyboards.user.keyboards import create_year_papers_keyboard, get_menu_newspaper, get_menu_newspaper_search, get_show_bank, get_support_us
 from bot.keyboards.user.products_keyboard import get_show_faq, get_show_price
 from bot.parsers.archives_parser import parse_archives_page
 from bot.parsers.products_parser import parse_products_page
-from bot.utils.states import NewsPapers, SupportState
+from bot.utils.states import NewsPapers
 
 router = Router()
 
 @router.callback_query(F.data == "back_to_main")
-async def back_to_menu(callback: CallbackQuery):
+async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     """Обработчик кнопки 'Назад' в главное меню"""
+    
+    await state.clear()
+    
     try:
         await show_start_menu(callback, edit=True)  # Редактируем существующее сообщение
     except TelegramBadRequest:
@@ -44,7 +46,6 @@ async def menu_support_us(callback: CallbackQuery):
 async def menu_products(callback: CallbackQuery):
     """Обработчик кнопки 'Продукция' из главного меню"""
     await show_products_menu(callback, edit=True)
-
 
 @router.callback_query(F.data.startswith('bank_'))
 async def support_us_callback(callback: CallbackQuery):
@@ -132,6 +133,11 @@ async def menu_show_newspaper(callback: CallbackQuery, state: FSMContext):
 @router.message(NewsPapers.newspapers)
 async def menu_process_years(message: Message, state: FSMContext):
     """Обработчик кнопки 'Введеного года'"""
+    
+    if message.text.startswith('/'):
+        await state.clear()
+        return
+    
     data = await parse_archives_page()
     newspapers = data.get('newspapers', [])
     
@@ -181,35 +187,63 @@ async def menu_process_years(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith('newspaper_'))
 async def handle_newspaper_selection(callback: CallbackQuery):
     """Обработчик кнопки 'Выбора выпуска газеты введеного года'"""
-    parts = callback.data.split('_')    # ["newspaper", "2024", "1"]
-    
-    year = parts[1]
-    issue = parts[2]
-    
-    data = await parse_archives_page()
-    papers = data.get('newspapers', [])
-    
-    # Ищем выбранную газету
-    selected_paper = next(
-        (paper for paper in papers 
-         if paper['year'] == year and paper['issue'] == issue),
-        None
-    )
-    if selected_paper:
+    try:
+        parts = callback.data.split('_')    # ["newspaper", "2024", "1"]
+
+        year = parts[1]
+        issue = parts[2]
+
+        data = await parse_archives_page()
+        papers = data.get('newspapers', [])
+
+        # Ищем выбранную газету
+        selected_paper = next(
+            (paper for paper in papers 
+                if paper['year'] == year and paper['issue'] == issue),
+            None
+        )
+
+        if not selected_paper:
+            await callback.answer("❌ Газета не найдена", show_alert=True)
+            return
+
         markup = get_menu_newspaper()
-        
+
         # Отправляем картинку газеты
         if selected_paper.get('img_url'):
             await callback.message.answer_photo(
                 photo=selected_paper['img_url'],
                 caption=(f"📰 <b>{selected_paper['title']}</b>"
             ))
-        
+
         # Отправляем PDF файл
-        await callback.message.answer_document(
-            document=selected_paper['pdf_url'],
-            caption=f"📄 <b>Газета в формате PDF</b>\n⬆️ Скачайте файл или вернитесь в меню",
-            reply_markup=markup
-        )
-    else:
-        await callback.answer("❌ Газета не найдена", show_alert=True)
+        try:
+            await callback.message.answer_document(
+                document=selected_paper['pdf_url'],
+                caption=f"📄 <b>Газета в формате PDF</b>\n⬆️ Скачайте файл или вернитесь в меню",
+                reply_markup=markup)
+        except TelegramBadRequest as e:
+            print(f"PDF Telegram error: {e}")
+            # Специфичная обработка ошибок Telegram
+            if "wrong file identifier" in str(e).lower() or "wrong type" in str(e).lower():
+                await callback.message.answer(
+                    f"❌ Неверный формат файла\n"
+                    f"📰 <b>{selected_paper['title']}</b>\n"
+                    f"🔗 <a href='{selected_paper['pdf_url']}'>Скачать по ссылке</a>",
+                    reply_markup=markup
+                )
+            else:
+                await callback.message.answer(
+                    '❌ Не удалось загрузить PDF файл',
+                    reply_markup=markup
+                )
+                
+        except Exception as e:
+            print(f"PDF general error: {e}")
+            await callback.message.answer(
+                '❌ Ошибка при загрузке файла',
+                reply_markup=markup
+            )
+    except Exception as e:
+        print(f"Unexpected error in newspaper selection: {e}")
+        await callback.answer("❌ Произошла непредвиденная ошибка", show_alert=True)
