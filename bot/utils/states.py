@@ -8,3 +8,6 @@ class AdminState(StatesGroup):
     
 class SupportState(StatesGroup):
     waiting_for_question = State()
+    
+class Bible(StatesGroup):
+    bible_search = State()
