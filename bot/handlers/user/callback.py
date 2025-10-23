@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_menu_newspaper, show_products_menu, show_start_menu
-from bot.keyboards.user.keyboards import create_year_papers_keyboard, get_menu_newspaper, get_menu_newspaper_search, get_show_bank, get_support_us
+from bot.keyboards.user.keyboards import  get_menu_newspaper, get_show_bank
 from bot.keyboards.user.products_keyboard import get_show_faq, get_show_price
 from bot.parsers.archives_parser import parse_archives_page
 from bot.parsers.products_parser import parse_products_page
@@ -125,64 +125,64 @@ async def menu_show_faq(callback: CallbackQuery):
         await callback.answer("Сообщение уже актуально ✅", show_alert=False)
     
 @router.callback_query(F.data == 'newspaper')
-async def menu_show_newspaper(callback: CallbackQuery, state: FSMContext):
+async def menu_show_newspaper(callback: CallbackQuery): #, state: FSMContext
     """Обработчик кнопки 'Газета'"""
     await show_menu_newspaper(callback, edit=True)
-    await state.set_state(NewsPapers.newspapers)
+    # await state.set_state(NewsPapers.newspapers)
         
-@router.message(NewsPapers.newspapers)
-async def menu_process_years(message: Message, state: FSMContext):
-    """Обработчик кнопки 'Введеного года'"""
+# @router.message(NewsPapers.newspapers)
+# async def menu_process_years(message: Message, state: FSMContext):
+#     """Обработчик кнопки 'Введеного года'"""
     
-    if message.text.startswith('/'):
-        await state.clear()
-        return
+#     if message.text.startswith('/'):
+#         await state.clear()
+#         return
     
-    data = await parse_archives_page()
-    newspapers = data.get('newspapers', [])
+#     data = await parse_archives_page()
+#     newspapers = data.get('newspapers', [])
     
-    if not newspapers:
-        await message.answer('Архивы временно недоступны')
-        await state.clear()
-        return
+#     if not newspapers:
+#         await message.answer('Архивы временно недоступны')
+#         await state.clear()
+#         return
     
-    max_year = max(int(item['year']) for item in newspapers)
-    user_text = message.text
-    markup = get_menu_newspaper_search()
-    # Проверки
-    if not user_text.isdigit():
-        await message.answer('❌ Введите число!', reply_markup=markup)
-        return
+#     max_year = max(int(item['year']) for item in newspapers)
+#     user_text = message.text
+#     markup = get_menu_newspaper_search()
+#     # Проверки
+#     if not user_text.isdigit():
+#         await message.answer('❌ Введите число!', reply_markup=markup)
+#         return
     
-    if len(user_text) != 4:
-        await message.answer('❌ Пожалуйста, введите корректный год (4 цифры)', reply_markup=markup)
-        return
+#     if len(user_text) != 4:
+#         await message.answer('❌ Пожалуйста, введите корректный год (4 цифры)', reply_markup=markup)
+#         return
     
-    year = int(user_text)
+#     year = int(user_text)
     
-    if year < 2018:
-        await message.answer('❌ Выпусков до 2018 года нет в архивах', reply_markup=markup)
-        return
+#     if year < 2018:
+#         await message.answer('❌ Выпусков до 2018 года нет в архивах', reply_markup=markup)
+#         return
     
-    if year > max_year:
-        await message.answer(f'❌ Выпуски доступны до {max_year} года', reply_markup=markup)
-        return
+#     if year > max_year:
+#         await message.answer(f'❌ Выпуски доступны до {max_year} года', reply_markup=markup)
+#         return
     
-    year_papers = [paper for paper in newspapers if int(paper['year']) == year]
+#     year_papers = [paper for paper in newspapers if int(paper['year']) == year]
     
-    if not year_papers:
-        await message.answer(f'❌ За {year} год выпусков не найдено', reply_markup=markup)
-        await state.clear()
-        return
+#     if not year_papers:
+#         await message.answer(f'❌ За {year} год выпусков не найдено', reply_markup=markup)
+#         await state.clear()
+#         return
     
-    # Показываем найденные газеты
-    text = f'📰 <b>Газеты за {year} год:</b>\n\n'
-    for paper in year_papers:
-        text += f"• {paper['title']}\n"
+#     # Показываем найденные газеты
+#     text = f'📰 <b>Газеты за {year} год:</b>\n\n'
+#     for paper in year_papers:
+#         text += f"• {paper['title']}\n"
         
-    markup_papers = create_year_papers_keyboard(year_papers)
-    await message.answer(text, reply_markup=markup_papers)
-    await state.clear()
+#     markup_papers = create_year_papers_keyboard(year_papers)
+#     await message.answer(text, reply_markup=markup_papers)
+#     await state.clear()
 
 @router.callback_query(F.data.startswith('newspaper_'))
 async def handle_newspaper_selection(callback: CallbackQuery):
