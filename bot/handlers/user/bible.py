@@ -44,8 +44,7 @@ async def show_menu_bible(message_or_call, edit: bool = False):
     "💫 *Выберите раздел для чтения:*"
     )
     markup = get_menu_bible()
-    
-    await asyncio.sleep(0.3)
+
     
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup, parse_mode='Markdown')
@@ -210,7 +209,6 @@ async def menu_chapter_selection(callback: CallbackQuery):
     # 🔹 Промежуточные части — просто отправляем (без клавиатуры)
     for part in parts[1:-1]:
         await callback.message.answer(part)
-        await asyncio.sleep(0.5)
 
     # 🔹 Последняя часть — с футером и клавиатурой
     last_part = parts[-1] + footer
@@ -328,7 +326,6 @@ async def menu_process_bible_search(message: Message, state: FSMContext):
         for p in parts[1:-1]:
             try:
                 await message.answer(p)
-                await asyncio.sleep(0.5)
             except TelegramRetryAfter as e:
                 await message.answer(f"🔎 Ищу совпадения, подождите {e.retry_after} сек...")
                 print(f"⏳ Flood control: спим {e.retry_after} сек...")
