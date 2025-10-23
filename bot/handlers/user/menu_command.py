@@ -4,9 +4,10 @@ import json
 import random
 from loguru import logger
 from bot.db import crud
-from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_menu_newspaper, get_support_us
+from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_menu_newspaper, get_menu_newspaper_search, get_support_us
 from bot.keyboards.user.products_keyboard import get_products_menu
 from bot.keyboards.user.start_keyboard import get_start_menu
+from bot.parsers.archives_parser import parse_archives_page
 from bot.parsers.number_newspapers import parse_number_newspapers
 from bot.parsers.products_parser import parse_products_page
 from aiogram.fsm.context import FSMContext
@@ -65,13 +66,11 @@ async def show_start_menu(message_or_call, edit: bool = False):
         "/donate - Поддержать редакцию\n"
         "/bible - Читать Библию\n"
         "/contacts - Контакты\n"
-        "/about - О проекте\n\n"
+        "/about - О Нас\n\n"
         
         "💝 <i>Бог любит вас и слышит ваши молитвы!</i>"
     )
     markup = get_start_menu()
-    
-    await asyncio.sleep(0.3)
     
     if edit and hasattr(message_or_call, "message"):
         try:
@@ -92,8 +91,6 @@ async def show_menu_contacts(message_or_call, edit: bool = False):
         "<i>Пусть каждое слово приносит свет и надежду в ваш день.</i> ✨"
     )
     markup = get_contacts_menu()
-    
-    await asyncio.sleep(0.3)
     
     if edit and hasattr(message_or_call, "message"):
         await message_or_call.message.edit_text(text, reply_markup=markup)
@@ -126,8 +123,6 @@ async def show_menu_about_us(message_or_call, edit: bool = False):
     )
     markup = get_menu_about_us()
     
-    await asyncio.sleep(0.3)
-    
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -145,8 +140,6 @@ async def show_donate_menu(message_or_call, edit: bool = False):
     )
     markup = get_support_us()
     
-    await asyncio.sleep(0.3)
-    
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
@@ -156,34 +149,55 @@ async def show_products_menu(message_or_call, edit: bool = False):
     """Меню продукция"""
     data = await parse_products_page()
     text = (
-        "📰 <b>Заказать и купить газету «Доброе Слово»</b> можно:\n\n"
-        "📩 Отправив сообщение по СМС, Viber или WhatsApp на номер:\n"
+        "🛍️ <b>ПРИОБРЕСТИ ПРОДУКЦИЮ «Доброе Слово»</b>\n\n"
+        
+        "📦 <b>В продаже имеется:</b>\n"
+        "• Газета «Доброе Слово»\n"
+        "• Пластиковые карточки\n"
+        "• Календари\n" 
+        "• Христианские наклейки\n\n"
+        
+        "📞 <b>Способы заказа:</b>\n"
+        "📩 СМС/Viber/WhatsApp:\n"
         "<code>+7-912-756-82-80</code>\n\n"
-        "🛍️ Или через маркетплейс Ozon:"
+        "🛒 Через маркетплейс Ozon\n\n"
+        "🕊 <i>Да благословит вас Господь!</i>"
     )
     markup = get_products_menu(data['ozon_link'])
-    
-    await asyncio.sleep(0.3)
-    
+
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
     else:
         await message_or_call.answer(text, reply_markup=markup)
 
 async def show_menu_newspaper(message_or_call, edit: bool = False):
-    text = (
-        "📅 Напишите, за какой год вы хотите посмотреть газеты.\n\n"
-        "Например: <b>2024</b>"
-    )
-    markup = get_menu_newspaper()
-    
-    await asyncio.sleep(0.3)
-    
-    if edit and hasattr(message_or_call, 'message'):
-        await message_or_call.message.edit_text(text, reply_markup=markup)
-    else:
-        await message_or_call.answer(text, reply_markup=markup)
-    
+    async def send_or_edit_message(text, markup):
+        """Вспомогательная функция для отправки/редактирования сообщения"""
+        await asyncio.sleep(0.3)
+        if edit and hasattr(message_or_call, 'message'):
+            await message_or_call.message.edit_text(text, reply_markup=markup)
+        else:
+            await message_or_call.answer(text, reply_markup=markup)
+    try:
+        data = await parse_archives_page()
+        newspapers = data.get('newspapers', [])  
+        markup = get_menu_newspaper_search(newspapers)
+        max_year = max(int(item['year']) for item in newspapers)
+        min_year = min(int(item['year']) for item in newspapers)
+        text = (
+            "📅 <b>Выбор года для чтения</b>\n\n"
+            f"🗓 <i>Доступные годы: с {min_year} по {max_year}</i>\n\n"
+            "✨ <b>Пусть каждая газета и каждое свидетельство</b>\n"
+            "станет благословением для вашей души 🌿"
+        )
+        await send_or_edit_message(text, markup)
+        
+    except Exception as e:
+        print(f"Ошибка при загрузке архивов: {e}")
+        markup = get_menu_newspaper()
+        text = '📭 Архивы временно недоступны'
+        await send_or_edit_message(text, markup)
+
     
 
 # async def show_resources_menu(message_or_call, edit: bool = False):
