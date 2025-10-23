@@ -6,6 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from bot.core.bot_commands import get_bot_commands
 from bot.handlers.admin import admin
+from bot.middlewares.antiflood_middleware import AntiFloodMiddleware
 from bot.utils.logger import logger
 from bot.handlers.user import bible, message
 from bot.handlers.user import callback
@@ -32,6 +33,9 @@ async def main():
     # Создаём экземпляр бота
     bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
+    
+    dp.message.middleware(AntiFloodMiddleware(min_delay=0.5))
+    dp.callback_query.middleware(AntiFloodMiddleware(min_delay=0.5))
 
     # Подключаем роутеры
     dp.include_routers(message.router, callback.router, bible.router)
