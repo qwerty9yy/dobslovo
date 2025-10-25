@@ -1,4 +1,6 @@
+import asyncio
 import html
+import os
 from pathlib import Path
 from aiogram import Router, F, types
 from aiogram.types import CallbackQuery, InputMediaPhoto, Message
@@ -6,12 +8,14 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from bot.handlers.user.menu_command import show_donate_menu, show_menu_about_us, show_menu_contacts, show_menu_newspaper, show_products_menu, show_start_menu
 from bot.keyboards.user.keyboards import  get_menu_newspaper, get_show_bank
-from bot.keyboards.user.products_keyboard import get_show_faq, get_show_price
+from bot.keyboards.user.products_keyboard import get_failed_newspaper_products_dobslovo, get_failed_products_dobslovo, get_newspaper_products_dobslovo, get_products_dobslovo, get_show_faq, get_show_price
 from bot.parsers.archives_parser import parse_archives_page
 from bot.parsers.products_parser import parse_products_page
 from bot.utils.states import NewsPapers
 
 router = Router()
+MEDIA_PRODUCTS_DIR = "bot/media/products"
+MEDIA_NEWSPAPER_DIR = "bot/media/newspaper"
 
 @router.callback_query(F.data == "back_to_main")
 async def back_to_menu(callback: CallbackQuery, state: FSMContext):
@@ -247,3 +251,95 @@ async def handle_newspaper_selection(callback: CallbackQuery):
     except Exception as e:
         print(f"Unexpected error in newspaper selection: {e}")
         await callback.answer("❌ Произошла непредвиденная ошибка", show_alert=True)
+        
+@router.callback_query(F.data == 'products_dobslovo')
+async def menu_products_dobslovo(callback: CallbackQuery):
+    """Меню 'Товары' — показывает все добавленные админом изображения"""
+    text = (
+        '🛍️ <b>Наши товары</b>'
+    )   
+    # Загружаем все изображения из папки
+    files = sorted(os.listdir(MEDIA_PRODUCTS_DIR))
+    
+    if not files:
+        markup = get_failed_products_dobslovo()
+        await callback.message.edit_text("❌ Пока нет доступных товаров.",
+                                         reply_markup=markup)
+        return
+    
+    # Разбиваем список файлов на группы по 10 (Telegram ограничивает альбом до 10)
+    batch_size = 10
+    batches = [files[i:i + batch_size] for i in range(0, len(files), batch_size)]
+    
+    first = True
+    for batch in batches:
+        media_group = []
+        for file in batch:
+            file_path = os.path.join(MEDIA_PRODUCTS_DIR, file)
+            if os.path.isfile(file_path):
+                media_group.append(
+                    InputMediaPhoto(media=types.FSInputFile(file_path))
+                )
+        if media_group:
+            try:
+                # для первой группы — редактируем текущее сообщение
+                if first:
+                    await callback.message.answer_media_group(
+                        media=media_group
+                    )
+                else:
+                    # для последующих — создаём новое сообщение
+                    await callback.message.answer_media_group(media=media_group)
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                print(f"⚠️ Ошибка отправки {file_path}: {e}")
+    
+    markup = get_products_dobslovo()
+    await callback.message.answer(text, reply_markup=markup)
+
+@router.callback_query(F.data == 'products_dobslovo_newspaper_photo')
+async def menu_newspaper_products_dobslovo(callback: CallbackQuery):
+    """Меню 'Газета в товарах' — показывает все добавленные админом изображения"""
+    text = (
+        '🛍️ <b>Газета Доброе слово</b>'
+    )   
+    # Загружаем все изображения из папки
+    files = sorted(os.listdir(MEDIA_NEWSPAPER_DIR))
+    
+    if not files:
+        markup = get_failed_newspaper_products_dobslovo()
+        await callback.message.edit_text("❌ Пока нет доступных товаров.",
+                                         reply_markup=markup)
+        return
+    
+    # Разбиваем список файлов на группы по 10 (Telegram ограничивает альбом до 10)
+    batch_size = 10
+    batches = [files[i:i + batch_size] for i in range(0, len(files), batch_size)]
+    
+    first = True
+    for batch in batches:
+        media_group = []
+        for file in batch:
+            file_path = os.path.join(MEDIA_NEWSPAPER_DIR, file)
+            if os.path.isfile(file_path):
+                media_group.append(
+                    InputMediaPhoto(media=types.FSInputFile(file_path))
+                )
+        if media_group:
+            try:
+                # для первой группы — редактируем текущее сообщение
+                if first:
+                    await callback.message.answer_media_group(
+                        media=media_group
+                    )
+                else:
+                    # для последующих — создаём новое сообщение
+                    await callback.message.answer_media_group(media=media_group)
+                await asyncio.sleep(0.5)
+            except Exception as e:
+                print(f"⚠️ Ошибка отправки {file_path}: {e}")
+    
+    markup = get_newspaper_products_dobslovo()
+    await callback.message.answer(text, reply_markup=markup)
+    
+    
