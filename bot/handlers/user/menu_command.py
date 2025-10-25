@@ -4,6 +4,7 @@ import json
 import random
 from loguru import logger
 from bot.db import crud
+from datetime import datetime, timedelta
 from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_menu_newspaper, get_menu_newspaper_search, get_support_us
 from bot.keyboards.user.products_keyboard import get_products_menu
 from bot.keyboards.user.start_keyboard import get_start_menu
@@ -29,18 +30,26 @@ def load_quotes():
 quotes = load_quotes()
 
 def get_random_message():
+    """Возвращает случайную цитату из списка."""
     if not quotes['bible_quotes'] and not quotes['christian_words']:
         return "Доброе слово на сегодня"
     return random.choice(quotes['christian_words'] + quotes['bible_quotes'])
 
 def update_quote_of_the_day():
+    """Обновляет глобальную цитату дня."""
     global quote_of_the_day
     quote_of_the_day = get_random_message()
-    logger.info(f"Цитата дня обновлена: {quote_of_the_day[:50]}...")
+    logger.info(f"Цитата дня обновлена: {quote_of_the_day[:60]}...")
+
+async def quote_updater_loop():
+    while True:
+        await asyncio.sleep(86400)
+        update_quote_of_the_day()
 
 # Инициализируем при загрузке модуля
 if quote_of_the_day is None:
     update_quote_of_the_day()
+
 
 async def show_start_menu(message_or_call, edit: bool = False):
     """Стартовое меню"""
@@ -160,10 +169,10 @@ async def show_products_menu(message_or_call, edit: bool = False):
         "📞 <b>Способы заказа:</b>\n"
         "📩 СМС/Viber/WhatsApp:\n"
         "<code>+7-912-756-82-80</code>\n\n"
-        "🛒 Через маркетплейс Ozon\n\n"
+        "🛒 Через маркетплейс Ozon и Wildberries\n\n"
         "🕊 <i>Да благословит вас Господь!</i>"
     )
-    markup = get_products_menu(data['ozon_link'])
+    markup = get_products_menu() # get_products_menu(data['ozon_link'])
 
     if edit and hasattr(message_or_call, 'message'):
         await message_or_call.message.edit_text(text, reply_markup=markup)
