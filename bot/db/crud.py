@@ -1,5 +1,6 @@
 import select
 from bot.db.models import User
+from sqlalchemy import select
 from bot.db.base import async_session_maker
 from sqlalchemy.exc import IntegrityError
 
@@ -20,6 +21,7 @@ async def get_user_by_tg_id(tg_id: int):
             select(User).where(User.tg_id == tg_id)
         )
         return result.scalar_one_or_none()
+
 
 
 """Объяснение:
