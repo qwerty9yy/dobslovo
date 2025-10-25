@@ -10,6 +10,9 @@ class User(Base):
     tg_id = Column(Integer, unique=True, nullable=False)
     username = Column(String, nullable=True)
 
+    
+    
+
 """Объяснение:
 
 ORM-модель User — это таблица пользователей.
