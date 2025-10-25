@@ -36,12 +36,12 @@ async def parse_products_page():
         response.raise_for_status()
     except requests.RequestException as e:
         print(f"⚠️ Ошибка при запросе: {e}")
-        return {"ozon_link": None, "price": "Ошибка загрузки"}
+        return {"price": "Ошибка загрузки"}
     soup = BeautifulSoup(response.text, 'lxml')
     
     # Парсим OZON ссылку
-    ozon_link_tag = soup.find('a', href=lambda h: h and 'ozon.ru' in h)
-    ozon_link = ozon_link_tag['href'] if ozon_link_tag else None
+    # ozon_link_tag = soup.find('a', href=lambda h: h and 'ozon.ru' in h)
+    # ozon_link = ozon_link_tag['href'] if ozon_link_tag else None
     
     # Парсим цену
     price_block = soup.find('p', string=lambda s: s and 'Цена газеты' in s)
@@ -73,7 +73,7 @@ async def parse_products_page():
     
     
     return {
-        'ozon_link': ozon_link,
+        # 'ozon_link': ozon_link,
         'price': price_text,
         'price_delivery': price_delivery,
         'popular_questions': popular_questions,
