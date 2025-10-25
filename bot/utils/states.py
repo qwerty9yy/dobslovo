@@ -5,6 +5,8 @@ class NewsPapers(StatesGroup):
     
 class AdminState(StatesGroup):
     newsletter = State()
+    add_and_change_calendars = State()
+    edit_newspapers_photo = State()
     
 class SupportState(StatesGroup):
     waiting_for_question = State()
