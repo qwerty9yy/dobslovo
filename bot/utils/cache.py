@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from bot.utils.logger import logger
 from functools import wraps
 from typing import Callable, Any
 
@@ -30,21 +31,20 @@ def cache_json(ttl: int = 86400):
                         with open(cache_file, "r", encoding="utf-8") as f:
                             return json.load(f)
                     except Exception as e:
-                        print(f"⚠️ Ошибка чтения кеша {cache_file}: {e}")
+                        logger.info(f"⚠️ Ошибка чтения кеша {cache_file}: {e}")
 
             # 2️⃣ Если кеш отсутствует или устарел — выполняем функцию
             try:
                 result = await func(*args, **kwargs)
             except Exception as e:
-                print(f"⚠️ Ошибка в функции {func.__name__}: {e}")
-                return None
+                logger.errorinfoNone
 
             # 3️⃣ Сохраняем результат в кеш
             try:
                 with open(cache_file, "w", encoding="utf-8") as f:
                     json.dump(result, f, ensure_ascii=False, indent=2)
             except Exception as e:
-                print(f"⚠️ Ошибка записи кеша {cache_file}: {e}")
+                logger.info(f"⚠️ Ошибка записи кеша {cache_file}: {e}")
 
             return result
 
