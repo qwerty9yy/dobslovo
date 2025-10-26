@@ -2,7 +2,7 @@ import asyncio
 import html
 import json
 import random
-from loguru import logger
+from bot.utils.logger import logger
 from bot.db import crud
 from datetime import datetime, timedelta
 from bot.keyboards.user.keyboards import get_contacts_menu, get_menu_about_us, get_menu_newspaper, get_menu_newspaper_search, get_support_us
@@ -202,7 +202,7 @@ async def show_menu_newspaper(message_or_call, edit: bool = False):
         await send_or_edit_message(text, markup)
         
     except Exception as e:
-        print(f"Ошибка при загрузке архивов: {e}")
+        logger.error(f"Ошибка при загрузке архивов: {e}")
         markup = get_menu_newspaper()
         text = '📭 Архивы временно недоступны'
         await send_or_edit_message(text, markup)
