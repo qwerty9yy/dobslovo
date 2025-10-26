@@ -3,6 +3,7 @@ import json
 import time
 from bs4 import BeautifulSoup
 import requests
+from bot.utils.logger import logger
 from fake_useragent import UserAgent
 from bot.utils.cache import cache_json
 
@@ -35,7 +36,7 @@ async def parse_products_page():
         response = requests.get(URL, headers=headers, timeout=10)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"⚠️ Ошибка при запросе: {e}")
+        logger.error(f"⚠️ Ошибка при запросе: {e}", exc_info=True)
         return {"price": "Ошибка загрузки"}
     soup = BeautifulSoup(response.text, 'lxml')
     
