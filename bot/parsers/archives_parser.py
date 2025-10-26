@@ -1,4 +1,5 @@
 import requests
+from bot.utils.logger import logger
 from bs4 import BeautifulSoup
 from bot.utils.cache import cache_json
 from bot.parsers.products_parser import get_random_headers
@@ -14,7 +15,7 @@ async def parse_archives_page():
         response = requests.get(URL, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"⚠️ Ошибка при запросе страницы: {e}")
+        logger.error(f"⚠️ Ошибка при запросе страницы: {e}", exc_info=True)
         return {"newspapers": []}
 
     soup = BeautifulSoup(response.text, "lxml")
