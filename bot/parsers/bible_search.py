@@ -1,4 +1,5 @@
 import requests
+from bot.utils.logger import logger
 from bs4 import BeautifulSoup
 
 from bot.parsers.products_parser import get_random_headers
@@ -13,18 +14,18 @@ async def parse_bible_search(search_word: str):
         response = requests.get(URL, headers=headers, timeout=15)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"⚠️ Ошибка при запросе страницы для поиска по Библии: {e}")
+        logger.error(f"⚠️ Ошибка при запросе страницы для поиска по Библии: {e}", exc_info=True)
         return None
     
     try:
         data = response.json()
     except ValueError:
-        print("⚠️ Ошибка: неверный формат ответа API (не JSON).")
+        logger.error("⚠️ Ошибка: неверный формат ответа API (не JSON).", exc_info=True)
         return None
     
     # Проверяем, что это словарь и содержит ключ "info"
     if not isinstance(data, dict) or 'info' not in data:
-        print("⚠️ Ошибка: структура данных неожиданна.")
+        logger.error("⚠️ Ошибка: структура данных неожиданна.", exc_info=True)
         return None
     
     # Берём данные о поиске
