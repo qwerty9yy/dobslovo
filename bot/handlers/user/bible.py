@@ -7,7 +7,7 @@ from aiogram.exceptions import TelegramBadRequest
 import json
 import asyncio
 from aiogram.exceptions import TelegramRetryAfter
-
+from bot.utils.logger import logger
 from bot.parsers.bible_search import parse_bible_search
 from bot.utils.states import Bible
 
@@ -328,7 +328,7 @@ async def menu_process_bible_search(message: Message, state: FSMContext):
                 await message.answer(p)
             except TelegramRetryAfter as e:
                 await message.answer(f"🔎 Ищу совпадения, подождите {e.retry_after} сек...")
-                print(f"⏳ Flood control: спим {e.retry_after} сек...")
+                logger.info(f"⏳ Flood control: спим {e.retry_after} сек...")
                 await asyncio.sleep(e.retry_after)
             
         # Последняя часть (с клавиатурой)
