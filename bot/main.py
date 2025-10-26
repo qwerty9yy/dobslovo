@@ -5,6 +5,7 @@ from bot.config.settings import settings
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from bot.core.bot_commands import get_bot_commands
+from bot.handlers import channel_posts
 from bot.handlers.admin import admin
 from bot.handlers.user.menu_command import quote_updater_loop
 from bot.middlewares.antiflood_middleware import AntiFloodMiddleware
@@ -35,14 +36,17 @@ async def main():
     bot = Bot(token=settings.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     
-    # 🕓 Запускаем задачу для обновления цитаты дня
-    asyncio.create_task(quote_updater_loop())
+    try:
+        # 🕓 Запускаем задачу для обновления цитаты дня
+        asyncio.create_task(quote_updater_loop())
+    except Exception as e:
+        logger.error(f'Ошибка загрузки цитат {e}')
     
     dp.message.middleware(AntiFloodMiddleware(min_delay=0.5))
     dp.callback_query.middleware(AntiFloodMiddleware(min_delay=0.5))
 
     # Подключаем роутеры
-    dp.include_routers(message.router, callback.router, bible.router)
+    dp.include_routers(message.router, callback.router, bible.router, channel_posts.router)
     dp.include_routers(admin.admin_router)
     
     # Инициализация базы данных
