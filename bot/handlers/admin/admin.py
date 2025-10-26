@@ -15,6 +15,7 @@ from aiogram.types import CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
+from bot.utils.logger import logger
 from bot.db.appeal_bd import get_all_users_tg_id, get_user_count
 from bot.keyboards.admin.keyboard import get_add_calendars, get_admin_products, get_admin_start_menu, get_edit_newspapers_photo, get_mailing, get_newsletter_step, get_statistics, get_yes_no_change_calendars, get_yes_no_replace_newspapers_photo
 from bot.utils.states import AdminState
@@ -130,7 +131,7 @@ async def start_newsletter_handler(callback: CallbackQuery, state: FSMContext, b
             await asyncio.sleep(0.3)
         except Exception as e:
             failed += 1
-            print(f"Ошибка отправки пользователю {user_id}: {e}")            
+            logger.error(f"Ошибка отправки пользователю {user_id}: {e}")            
             
     # Итоговое сообщение
     result_message = (
