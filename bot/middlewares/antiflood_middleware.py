@@ -1,4 +1,5 @@
 import asyncio
+from bot.utils.logger import logger
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject
 from aiogram.exceptions import TelegramRetryAfter, TelegramForbiddenError, TelegramBadRequest
@@ -35,15 +36,15 @@ class AntiFloodMiddleware(BaseMiddleware):
                 return await handler(event, data)
             except TelegramRetryAfter as e:
                 wait = getattr(e, "retry_after", 5)
-                print(f"⚠️ Flood control: жду {wait} сек (chat_id={chat_id})")
+                logger.info(f"⚠️ Flood control: жду {wait} сек (chat_id={chat_id})")
                 await asyncio.sleep(wait)
             except TelegramForbiddenError:
-                print(f"🚫 Пользователь {chat_id} заблокировал бота.")
+                logger.error(f"🚫 Пользователь {chat_id} заблокировал бота.")
                 return
             except TelegramBadRequest as e:
-                print(f"⚠️ Ошибка TelegramBadRequest: {e}")
+                logger.error(f"⚠️ Ошибка TelegramBadRequest: {e}", exc_info=True)
                 return
             except Exception as e:
-                print(f"⚠️ Неожиданная ошибка в middleware: {e}")
+                logger.error(f"⚠️ Неожиданная ошибка в middleware: {e}", exc_info=True)
                 await asyncio.sleep(1)
                 return
